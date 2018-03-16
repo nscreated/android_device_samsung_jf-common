@@ -1,6 +1,4 @@
-#
 # Copyright (C) 2009 The CyanogenMod Project
-# Copyright (C) 2017 The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +25,9 @@
 
 COMMON_PATH := device/samsung/jf-common
 
+# inherit from the proprietary version
+-include vendor/samsung/jf-common/BoardConfigVendor.mk
+
 # Platform
 TARGET_BOARD_PLATFORM := msm8960
 
@@ -37,18 +38,23 @@ TARGET_CPU_VARIANT := krait
 TARGET_BOOTLOADER_BOARD_NAME := MSM8960
 
 # Kernel
-BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom user_debug=31 zcache msm_rtb.filter=0x3F ehci-hcd.park=3
+BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom user_debug=31 zcache msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x80200000
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x02000000
 BOARD_KERNEL_PAGESIZE := 2048
 LZMA_RAMDISK_TARGETS := recovery
 TARGET_KERNEL_CONFIG := lineageos_jf_defconfig
 TARGET_KERNEL_SOURCE := kernel/samsung/jf
+TARGET_KERNEL_HAVE_EXFAT := true
 
 # Audio
-BOARD_HAVE_SAMSUNG_CSDCLIENT := true
 BOARD_USES_ALSA_AUDIO := true
 USE_CUSTOM_AUDIO_POLICY := 1
+BOARD_HAVE_SAMSUNG_CSDCLIENT := true
+
+# FM
+AUDIO_FEATURE_ENABLED_FM_POWER_OPT := true
+TARGET_FM_LEGACY_PATCHLOADER := true
 
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(COMMON_PATH)/bluetooth
@@ -60,6 +66,12 @@ BOARD_HAVE_BLUETOOTH_BCM := true
 # Camera
 TARGET_PROVIDES_CAMERA_HAL := true
 USE_DEVICE_SPECIFIC_CAMERA := true
+#Old camera hacks
+TARGET_HAS_LEGACY_CAMERA_HAL1 := true
+MALLOC_SVELTE := true
+TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
+#more camera stuff
+TARGET_NEEDS_GCC_LIBC := true
 
 # Charger
 BOARD_CHARGING_CMDLINE_NAME := "androidboot.bootchg"
@@ -74,6 +86,17 @@ NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
 TARGET_DISPLAY_USE_RETIRE_FENCE := true
 
+ifeq ($(HOST_OS),linux)
+  ifeq ($(WITH_DEXPREOPT),)
+    WITH_DEXPREOPT := true
+    WITH_DEXPREOPT_PIC := true
+    ifneq ($(TARGET_BUILD_VARIANT),user)
+      # Retain classes.dex in APK's for non-user builds
+      DEX_PREOPT_DEFAULT := nostripping
+    endif
+  endif
+endif
+
 # Fonts
 EXTENDED_FONT_FOOTPRINT := true
 
@@ -84,23 +107,18 @@ USE_DEVICE_SPECIFIC_GPS := true
 # Includes
 TARGET_SPECIFIC_HEADER_PATH += $(COMMON_PATH)/include
 
-# Legacy Hacks
-BOARD_GLOBAL_CFLAGS += -DDECAY_TIME_DEFAULT=0
-MALLOC_SVELTE := true
-TARGET_HAS_LEGACY_CAMERA_HAL1 := true
-TARGET_NEEDS_GCC_LIBC := true
-TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
-
 # NFC
 BOARD_NFC_HAL_SUFFIX := msm8960
 
 # Partitions
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 10485760
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := f2fs
-BOARD_CACHEIMAGE_PARTITION_SIZE := 2170552320
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 10485760
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1181114368
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 28651290624
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 2894069760
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 9961455616
+BOARD_CACHEIMAGE_PARTITION_SIZE := 2147483648
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 # Power
@@ -113,7 +131,7 @@ TARGET_SYSTEM_PROP := $(COMMON_PATH)/system.prop
 BOARD_USES_QC_TIME_SERVICES := true
 
 # Recovery
-TARGET_RECOVERY_DENSITY := xhdpi
+TARGET_RECOVERY_DENSITY := hdpi
 TARGET_RECOVERY_FSTAB := $(COMMON_PATH)/rootdir/etc/fstab.qcom
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
@@ -132,6 +150,19 @@ TARGET_USE_SDCLANG := true
 include device/qcom/sepolicy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy
 
+
+# Vendor Init
+TARGET_INIT_VENDOR_LIB := libinit_jflte
+TARGET_LIBINIT_DEFINES_FILE := $(COMMON_PATH)/init/init_jflte.cpp
+
+# Vold
+BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
+BOARD_VOLD_MAX_PARTITIONS := 28
+TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun%d/file
+
+# Webview version
+PREBUILT_WEBVIEW_VERSION := chromium
+
 # Wifi module
 BOARD_WLAN_DEVICE := bcmdhd
 BOARD_HAVE_SAMSUNG_WIFI := true
@@ -144,8 +175,3 @@ WIFI_BAND := 802_11_ABG
 WIFI_DRIVER_FW_PATH_AP := "/system/etc/wifi/bcmdhd_apsta.bin"
 WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/dhd/parameters/firmware_path"
 WIFI_DRIVER_FW_PATH_STA := "/system/etc/wifi/bcmdhd_sta.bin"
-
-#TWRP (optional)
-ifeq ($(WITH_TWRP),true)
--include device/samsung/jf-common/twrp.mk
-endif
