@@ -61,6 +61,7 @@ PRODUCT_AAPT_PREF_CONFIG := xxhdpi
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1920
 TARGET_SCREEN_WIDTH := 1080
+TARGET_BOOTANIMATION_HALF_RES := true
 
 $(call inherit-product, frameworks/native/build/phone-xxhdpi-2048-dalvik-heap.mk)
 
@@ -85,7 +86,7 @@ PRODUCT_COPY_FILES += \
 
 # Bluetooth
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/bluetooth/bcm4335_prepatch.hcd:system/vendor/firmware/bcm4335_prepatch.hcd
+    $(LOCAL_PATH)/bluetooth/bcm4335_prepatch.hcd:system/vendor/firmware/prepatch/bcm4335_prepatch.hcd
 
 # Camera
 PRODUCT_PACKAGES += \
@@ -100,18 +101,13 @@ PRODUCT_PACKAGES += \
     libgenlock \
     memtrack.msm8960
 
-# Doze
+# Doze 
 PRODUCT_PACKAGES += \
     SamsungDoze
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.conf:/system/etc/gps.conf \
     $(LOCAL_PATH)/configs/sap.conf:/system/etc/sap.conf
-
-# Filesystem tools
-PRODUCT_PACKAGES += \
-    e2fsck_static \
-    resize2fs_static
 
 # IPv6 tethering
 PRODUCT_PACKAGES += \
@@ -122,6 +118,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     consumerir.msm8960
 
+# Voice processing 
+PRODUCT_PACKAGES += \
+    libqcomvoiceprocessing
+    
 # Keylayouts
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/atmel_mxt_ts.kl:system/usr/keylayout/atmel_mxt_ts.kl \
@@ -135,6 +135,13 @@ PRODUCT_COPY_FILES += \
 # Lights
 PRODUCT_PACKAGES += \
     lights.MSM8960
+    
+# Loki
+PRODUCT_PACKAGES += \
+    loki_tool \
+    loki.sh \
+    loki_bootloaders \
+    recovery-transform.sh
 
 # Media
 PRODUCT_COPY_FILES += \
@@ -161,6 +168,9 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/libnfc-brcm.conf:system/etc/libnfc-brcm.conf \
     $(LOCAL_PATH)/configs/nfcee_access.xml:system/etc/nfcee_access.xml
 
+PRODUCT_PROPERTY_OVERRIDES += \
+    camera2.portability.force_api=1
+
 # OMX
 PRODUCT_PACKAGES += \
     libOmxCore \
@@ -171,10 +181,6 @@ PRODUCT_PACKAGES += \
     libOmxEvrcEnc \
     libOmxQcelp13Enc \
     libstagefrighthw
-
-# Power
-PRODUCT_PACKAGES += \
-    power.msm8960
 
 # Ramdisk
 PRODUCT_PACKAGES += \
@@ -187,7 +193,8 @@ PRODUCT_PACKAGES += \
 
 # RIL
 PRODUCT_PACKAGES += \
-    libshim_ril
+    libshim_ril \
+    libwvm_jflte
 
 # SPN override
 PRODUCT_COPY_FILES += \
