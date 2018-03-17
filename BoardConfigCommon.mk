@@ -132,6 +132,10 @@ TARGET_USE_SDCLANG := true
 include device/qcom/sepolicy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy
 
+# Vendor Init
+TARGET_INIT_VENDOR_LIB := libinit_jflte
+TARGET_LIBINIT_DEFINES_FILE := $(COMMON_PATH)/init/init_jflte.cpp
+
 # Wifi module
 BOARD_WLAN_DEVICE := bcmdhd
 BOARD_HAVE_SAMSUNG_WIFI := true
